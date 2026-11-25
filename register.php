@@ -1,6 +1,11 @@
 <?php
-// REGISTER: create a new account. Role is ALWAYS 'user' (admins are created in the database only).
-// Same bot protection as login: CSRF token, honeypot field, time trap, strict validation, prepared statements.
+/*
+ * File: register.php
+ * Purpose: Validate a registration and create a regular user account.
+ * Access: Guests; authenticated users are redirected to the feedback list.
+ * Tables: users.
+ */
+// CRUD: CREATE a user account.
 require 'db_connect.php';
 require 'includes/auth.php';
 if (current_user()) { header('Location: index.php'); exit; }
@@ -9,15 +14,18 @@ $title = 'Register';
 $full_name = $username = '';
 $errors = [];
 
+// Validate submitted values, anti-bot controls, and username availability.
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $full_name = trim($_POST['full_name'] ?? '');
     $username  = trim($_POST['username'] ?? '');
     $password  = $_POST['password'] ?? '';
     $confirm   = $_POST['confirm'] ?? '';
 
+    // SECURITY: Require a valid session token, an empty honeypot, and a human-like delay.
     if (!csrf_check($_POST['csrf'] ?? '')) $errors[] = 'Your session expired. Please try again.';
     elseif (($_POST['website'] ?? '') !== '' || (time() - ($_SESSION['reg_form_time'] ?? 0)) < 2) $errors[] = 'Submission blocked. Please try again.';
     else {
+        // Keep account fields within the patterns and limits expected by the database.
         if ($full_name === '' || strlen($full_name) > 100) $errors[] = 'Full name is required (max 100 characters).';
         if (!preg_match('/^[A-Za-z0-9_]{3,30}$/', $username)) $errors[] = 'Username must be 3-30 letters, numbers or underscores.';
         if (strlen($password) < 8 || strlen($password) > 72) $errors[] = 'Password must be 8 to 72 characters.';
@@ -25,13 +33,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (!$errors) {
+        // SECURITY: Check username availability with a prepared statement.
         $s = $conn->prepare("SELECT id FROM users WHERE username = ?");
         $s->bind_param('s', $username);
         $s->execute();
         if ($s->get_result()->num_rows > 0) {
             $errors[] = 'That username is already taken.';
         } else {
-            // Never store plain passwords: hash them
+            // SECURITY: Hash passwords; new public registrations always receive the user role.
             $hash = password_hash($password, PASSWORD_DEFAULT);
             $s = $conn->prepare("INSERT INTO users (full_name, username, password_hash) VALUES (?, ?, ?)");
             $s->bind_param('sss', $full_name, $username, $hash);
@@ -41,7 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+// Record when this form was rendered for the next submission's time-trap check.
 $_SESSION['reg_form_time'] = time();
+// Render the registration form and validation messages.
 include 'includes/header.php';
 ?>
 <div class="row justify-content-center"><div class="col-md-6 col-lg-5">

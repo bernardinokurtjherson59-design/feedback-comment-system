@@ -1,4 +1,13 @@
-<?php $nav_user = function_exists('current_user') ? current_user() : null; ?>
+<?php
+/*
+ * File: includes/header.php
+ * Purpose: Render the shared document head, navigation, and opening content container.
+ * Access: Included on guest, user, and admin pages.
+ * Tables: None.
+ */
+// Use the session helper when available so the navigation reflects the signed-in account.
+$nav_user = function_exists('current_user') ? current_user() : null;
+?>
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="light">
 <head>
@@ -7,7 +16,7 @@
   <title><?= e($title ?? 'Feedback System') ?></title>
   <?php if (function_exists('csrf_token')): ?><meta name="csrf-token" content="<?= e(csrf_token()) ?>"><?php endif; ?>
   <script>
-    // Apply the saved theme before the page paints (prevents a light flash in dark mode)
+    // Apply the saved preference before the page paints to avoid a theme flash.
     try { document.documentElement.setAttribute('data-bs-theme', localStorage.getItem('theme') || 'light'); } catch (e) {}
   </script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">

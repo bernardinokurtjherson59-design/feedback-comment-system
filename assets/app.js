@@ -1,4 +1,7 @@
-// 1) Dark mode toggle (preference saved in the browser)
+// File: assets/app.js | Purpose: Run theme, login countdown, live filter, and admin status UI.
+// Access: Guest, user, and admin pages. Tables: None; server endpoints handle database work.
+
+// dark mode: toggle the page theme and remember the preference in this browser.
 (function () {
   var root = document.documentElement, btn = document.getElementById('themeToggle');
   function label() { if (btn) btn.textContent = root.getAttribute('data-bs-theme') === 'dark' ? '☀️ Light mode' : '🌙 Dark mode'; }
@@ -11,7 +14,7 @@
   });
 })();
 
-// 2) Login cooldown countdown (server enforces the lock; this is just the display)
+// countdown: display the remaining lockout time; the server remains the source of enforcement.
 (function () {
   var cd = document.getElementById('countdown');
   if (!cd) return;
@@ -23,7 +26,7 @@
   })();
 })();
 
-// 3) Live search + status filter (no Filter button): reload only the table rows
+// live filter: refresh only table rows as the search text or status selection changes.
 (function () {
   var form = document.getElementById('filterForm'), body = document.getElementById('feedbackBody');
   if (!form || !body) return;
@@ -43,7 +46,7 @@
   form.querySelector('[name=q]').addEventListener('input', function () { clearTimeout(timer); timer = setTimeout(run, 300); });
 })();
 
-// 4) Admin: change a feedback's status instantly from the table
+// admin status update: save the selected status and restore the old value if saving fails.
 document.addEventListener('change', async function (e) {
   var sel = e.target.closest ? e.target.closest('.status-select') : null;
   if (!sel) return;

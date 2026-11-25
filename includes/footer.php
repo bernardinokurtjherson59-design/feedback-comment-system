@@ -1,4 +1,5 @@
-</div>
+<?php /* File: includes/footer.php | Purpose: Render the shared closing container, About modal,
+and browser scripts. Access: Guest, user, and admin pages. Tables: None. */ ?></div>
 
 <!-- About the website (opened from the Menu) -->
 <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutTitle" aria-hidden="true">

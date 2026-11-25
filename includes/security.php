@@ -1,13 +1,21 @@
 <?php
-// Login brute-force protection: 5 failed attempts => locked for 80 seconds.
-// Stored in the database (by IP address), so a bot cannot reset it by throwing away cookies.
+/*
+ * File: includes/security.php
+ * Purpose: Track failed logins by client IP and enforce temporary lockouts.
+ * Access: Included by guest login processing.
+ * Tables: login_attempts.
+ */
+// A lock begins at five failures; older attempts expire after fifteen minutes.
 const MAX_ATTEMPTS   = 5;
 const LOCK_SECONDS   = 80;
 const ATTEMPT_WINDOW = 900; // failed attempts older than 15 minutes are forgotten
 
+// Read the remote address in the maximum length supported by the database column.
+// Parameters: none; returns an IP address string.
 function client_ip() { return substr($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0', 0, 45); }
 
-// Seconds left on the lock (0 = not locked)
+// SECURITY: Find the number of seconds remaining in this IP's lockout.
+// Parameters: mysqli $conn and string $ip; returns remaining seconds as int.
 function lock_remaining(mysqli $conn, string $ip): int {
     $s = $conn->prepare("SELECT locked_until FROM login_attempts WHERE ip = ?");
     $s->bind_param('s', $ip);
@@ -16,7 +24,8 @@ function lock_remaining(mysqli $conn, string $ip): int {
     return $r ? max(0, (int)$r['locked_until'] - time()) : 0;
 }
 
-// Record a failed attempt. Returns attempts left (0 means the lock just started).
+// SECURITY: Store a failed attempt and begin a lock when the configured limit is reached.
+// Parameters: mysqli $conn and string $ip; returns attempts left, or 0 when locked.
 function register_failure(mysqli $conn, string $ip): int {
     $now = time();
     $cut = $now - ATTEMPT_WINDOW;
@@ -42,6 +51,8 @@ function register_failure(mysqli $conn, string $ip): int {
     return MAX_ATTEMPTS - $n;
 }
 
+// SECURITY: Remove the failed-attempt record after successful authentication.
+// Parameters: mysqli $conn and string $ip; returns void.
 function clear_attempts(mysqli $conn, string $ip): void {
     $s = $conn->prepare("DELETE FROM login_attempts WHERE ip = ?");
     $s->bind_param('s', $ip);

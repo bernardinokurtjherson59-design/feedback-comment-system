@@ -1,3 +1,7 @@
+-- File: migration.sql
+-- Purpose: Add account ownership and roles to an existing pre-login database.
+-- Access: Run once by the database administrator during an upgrade.
+-- Tables: users, feedback, comments.
 -- MIGRATION: adds login (users table) to an EXISTING database.
 -- Run ONCE in phpMyAdmin (select your database first, then SQL tab, paste, Go).
 -- Existing feedback/comments become owned by the admin account.

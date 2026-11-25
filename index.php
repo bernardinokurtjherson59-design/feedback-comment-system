@@ -1,15 +1,23 @@
 <?php
-// READ: list all feedback (login required). Search + status filter update live (no Filter button).
+/*
+ * File: index.php
+ * Purpose: List feedback, provide live search/status filtering, and show feedback actions.
+ * Access: Logged-in users and admins.
+ * Tables: feedback, users, comments.
+ */
+// CRUD: READ feedback and comment totals; the same results power live table refreshes.
 require 'db_connect.php';
 require 'includes/auth.php';
 require_login();
 $title = 'All Feedback';
 
+// Read optional filters so the page and its AJAX response show matching feedback.
 $q = trim($_GET['q'] ?? '');
 $status = $_GET['status'] ?? '';
 $like = '%' . $q . '%';
 
-// JOIN users to show the author's name
+// Join the author and count comments for display in each feedback row.
+// SECURITY: Bind all filter values to keep user input out of the SQL statement.
 $stmt = $conn->prepare(
   "SELECT f.*, u.full_name,
           (SELECT COUNT(*) FROM comments c WHERE c.feedback_id = f.id) AS total_comments
@@ -22,7 +30,9 @@ $stmt->bind_param('ssss', $like, $like, $status, $status);
 $stmt->execute();
 $rows = $stmt->get_result();
 
-// Prints the <tr> rows. Used for the full page AND for the live (ajax) refresh.
+// Render feedback rows for both the full page and partial AJAX response.
+// SECURITY: Escape user-controlled text and check permissions before showing actions.
+// Parameters: mysqli_result $rows; returns void and writes table rows to the response.
 function render_rows($rows) {
     if ($rows->num_rows === 0) {
         echo '<tr><td colspan="8" class="text-center text-muted py-4">No feedback found.</td></tr>';
@@ -62,12 +72,14 @@ function render_rows($rows) {
     <?php endwhile;
 }
 
-// Live refresh request from app.js: send only the rows
+// Return only the refreshed rows when app.js requests a partial table update.
 if (isset($_GET['ajax'])) { render_rows($rows); exit; }
 
+// Choose a success message from known keys rather than displaying a raw query value.
 $msgs = ['added' => 'Feedback submitted.', 'updated' => 'Feedback updated.', 'deleted' => 'Feedback deleted.'];
 $msg = $msgs[$_GET['msg'] ?? ''] ?? '';
 
+// Render the page shell and feedback controls after the query is ready.
 include 'includes/header.php';
 ?>
 <?php if ($msg): ?><div class="alert alert-success"><?= e($msg) ?></div><?php endif; ?>

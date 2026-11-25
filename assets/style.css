@@ -1,4 +1,6 @@
-/* Charcoal & Coral theme (overrides Bootstrap 5.3 variables). Supports light + dark mode. */
+/* File: assets/style.css | Purpose: Theme Bootstrap components and responsive app controls. */
+/* Access: Shared by guest, user, and admin pages. Tables: None. */
+/* Theme variables */
 :root {
   --charcoal: #262D35;
   --coral: #E4644E;
@@ -15,6 +17,7 @@
   --bs-link-hover-color: #A53A26;
   --bs-link-hover-color-rgb: 165, 58, 38;
 }
+/* Dark mode */
 [data-bs-theme="dark"] {
   --surface: #262D35;
   --soft: #2F3741;
@@ -33,14 +36,14 @@
 .navbar .nav-link { color: #E6E8EB; }
 .navbar .nav-link:hover, .navbar .nav-link:focus { color: var(--coral-light); }
 
-/* Surfaces */
+/* Shared surfaces */
 .card { --bs-card-bg: var(--surface); }
 .modal-content { background: var(--surface); }
 .dropdown-menu { --bs-dropdown-bg: var(--surface); }
 .card.auth { border-top: 4px solid var(--coral); }
 h2 { border-left: 5px solid var(--coral); padding-left: .6rem; }
 
-/* Buttons: charcoal text on coral for best contrast */
+/* Buttons */
 .btn-primary {
   --bs-btn-color: var(--charcoal); --bs-btn-bg: var(--coral); --bs-btn-border-color: var(--coral);
   --bs-btn-hover-color: var(--charcoal); --bs-btn-hover-bg: var(--coral-light); --bs-btn-hover-border-color: var(--coral-light);
@@ -73,11 +76,11 @@ h2 { border-left: 5px solid var(--coral); padding-left: .6rem; }
 .table-hover > tbody > tr:hover > * { --bs-table-bg-state: rgba(228, 100, 78, .10); }
 .stars { color: var(--coral); }
 
-/* Live status dropdown (admin) */
+/* Admin status controls */
 .status-select { display: inline-block; width: auto; min-width: 118px; border-width: 2px; }
 .status-new { border-color: var(--coral); }
 .status-reviewed { border-color: var(--slate); }
 .status-resolved { border-color: #3FA07C; }
 
-/* Honeypot field: invisible to people, bots fill it in */
+/* Honeypot */
 .hp-field { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }

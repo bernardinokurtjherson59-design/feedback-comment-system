@@ -1,4 +1,12 @@
-<?php /* Shared feedback form (user side). Expects $f (values), $errors, $isEdit */ ?>
+<?php
+/*
+ * File: includes/form.php
+ * Purpose: Render the shared feedback create/edit form and validation messages.
+ * Access: Included by logged-in users who submit or edit their own feedback.
+ * Tables: None; the including page handles validation and database writes.
+ * Inputs: $f (field values), $errors (validation messages), and $isEdit (form mode).
+ */
+?>
 <?php foreach ($errors as $er): ?>
   <div class="alert alert-danger py-2"><?= e($er) ?></div>
 <?php endforeach; ?>

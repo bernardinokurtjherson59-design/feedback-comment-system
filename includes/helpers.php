@@ -1,11 +1,19 @@
 <?php
+/*
+ * File: includes/helpers.php
+ * Purpose: Share allowed feedback values, validation, and presentation helpers.
+ * Access: Included by guest, user, and admin pages through db_connect.php.
+ * Tables: None.
+ */
 const CATEGORIES = ['General', 'Bug Report', 'Suggestion', 'Compliment', 'Complaint'];
 const STATUSES   = ['New', 'Reviewed', 'Resolved'];
 
-// Escape output to prevent XSS
+// SECURITY: Escape dynamic text before placing it in HTML output.
+// Parameters: mixed $s; returns an HTML-escaped string.
 function e($s) { return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 
-// Validate feedback form input (the author comes from the login session, not the form)
+// Validate feedback fields and return normalized values with any validation errors.
+// Parameters: array $p; returns [array $data, array $errors].
 function clean_feedback($p) {
     $d = [
         'category' => $p['category'] ?? 'General',
@@ -19,12 +27,18 @@ function clean_feedback($p) {
     return [$d, $err];
 }
 
+// Format a rating as filled and empty star characters.
+// Parameters: int|string $n; returns a string of five stars.
 function stars($n) { return str_repeat('★', (int)$n) . str_repeat('☆', 5 - (int)$n); }
 
+// Return a Bootstrap badge for the supplied account role.
+// Parameters: string $role; returns an HTML badge string.
 function role_badge($role) {
     return $role === 'admin' ? '<span class="badge text-bg-primary">Admin</span>' : '<span class="badge text-bg-secondary">User</span>';
 }
 
+// Return a Bootstrap badge with a color mapped to the feedback status.
+// Parameters: string $status; returns an escaped HTML badge string.
 function status_badge($status) {
     $c = ['New' => 'primary', 'Reviewed' => 'secondary', 'Resolved' => 'success'];
     return '<span class="badge text-bg-' . ($c[$status] ?? 'secondary') . '">' . e($status) . '</span>';

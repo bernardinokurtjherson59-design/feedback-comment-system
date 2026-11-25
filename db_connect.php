@@ -1,18 +1,19 @@
 <?php
-// Database connection. Change these values to your InfinityFree credentials when deploying.
+/*
+ * File: db_connect.php
+ * Purpose: Open the MySQL connection and load shared output helpers.
+ * Access: Included by guest, user, and admin pages.
+ * Tables: None directly; the connection is used by pages that query the database.
+ */
+// Database connection. Keep deployment credentials in the live copy of this file.
 $DB_HOST = 'localhost';
 $DB_USER = 'root';
 $DB_PASS = '';
 $DB_NAME = 'feedback_db';
 
-/*
-$DB_HOST = 'sql304.infinityfree.com';       // InfinityFree: e.g. sqlXXX.infinityfree.com
-$DB_USER = 'if0_43463004';                  // InfinityFree: e.g. if0_12345678
-$DB_PASS = 'hide';                          // InfinityFree: your MySQL password
-$DB_NAME = 'if0_43463004_owfeedback_db';    // InfinityFree: e.g. if0_12345678_feedback_db
-*/
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+// Connect using the local or deployment configuration defined above.
 try {
     $conn = new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
     $conn->set_charset('utf8mb4');

@@ -1,3 +1,7 @@
+-- File: database.sql
+-- Purpose: Create the complete schema and seed the administrator for a fresh install.
+-- Access: Run by the database administrator during setup, not through the website.
+-- Tables: users, feedback, comments, login_attempts.
 -- Online Feedback and Comment System (FULL schema for a fresh database)
 -- Local (XAMPP): create a database named feedback_db in phpMyAdmin, then import this file.
 -- InfinityFree: create the DB in Control Panel > MySQL Databases, open phpMyAdmin, select it, then import.

@@ -1,11 +1,11 @@
 <?php
-// LOGIN with protection against bots, brute force and SQL injection:
-//  1. CSRF token            - the form must come from this site, in this session
-//  2. Honeypot field        - hidden input that humans never fill, bots do
-//  3. Time trap             - a form submitted in under 2 seconds is a bot
-//  4. Input whitelist       - username must match a strict pattern before it touches the database
-//  5. Prepared statement    - user input is never concatenated into SQL (stops SQL injection)
-//  6. Lockout               - 5 failed attempts => 80-second cooldown, stored in the database by IP
+/*
+ * File: login.php
+ * Purpose: Authenticate an account and apply bot and brute-force protections.
+ * Access: Guests; authenticated users are redirected to the feedback list.
+ * Tables: users, login_attempts.
+ */
+// CRUD: READ account and lockout records; successful and failed logins update lockout data.
 require 'db_connect.php';
 require 'includes/auth.php';
 require 'includes/security.php';
@@ -17,6 +17,7 @@ $username = '';
 $ip = client_ip();
 $wait = lock_remaining($conn, $ip);
 
+// Validate the session token and bot checks before querying account credentials.
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($wait > 0) {
         // Locked: do not even look at the submitted credentials
@@ -26,13 +27,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $username = trim($_POST['username'] ?? '');
         $password = $_POST['password'] ?? '';
 
-        $looksLikeBot = ($_POST['website'] ?? '') !== ''                       // honeypot filled
-                     || (time() - ($_SESSION['login_form_time'] ?? 0)) < 2;    // submitted too fast
+        // SECURITY: The hidden honeypot and minimum form time help screen automated submits.
+        $looksLikeBot = ($_POST['website'] ?? '') !== ''
+                     || (time() - ($_SESSION['login_form_time'] ?? 0)) < 2;
+        // SECURITY: Restrict usernames and password size before checking the database.
         $validFormat = preg_match('/^[A-Za-z0-9_]{3,30}$/', $username)
                     && $password !== '' && strlen($password) <= 72;
 
         $ok = false;
         if (!$looksLikeBot && $validFormat) {
+            // SECURITY: Query by a bound username and verify the stored password hash.
             $s = $conn->prepare("SELECT id, full_name, username, password_hash, role FROM users WHERE username = ?");
             $s->bind_param('s', $username);
             $s->execute();
@@ -42,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($ok) {
             clear_attempts($conn, $ip);
+            // SECURITY: Rotate the session ID and issue a new CSRF token after login.
             session_regenerate_id(true); // prevents session fixation
             unset($_SESSION['csrf']);    // fresh token for the logged-in session
             $_SESSION['user'] = [
@@ -54,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // Failed: count it, slow the response a little, and lock after 5
+        // Count a failed attempt, add a small delay, and enforce the configured lockout.
         $left = register_failure($conn, $ip);
         usleep(400000);
         $wait = lock_remaining($conn, $ip);
@@ -63,7 +68,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+// Record when this form was rendered so the next submission can be time-checked.
 $_SESSION['login_form_time'] = time(); // start the time trap for the next submit
+// Render the login form and any lockout or validation message.
 include 'includes/header.php';
 ?>
 <div class="row justify-content-center"><div class="col-md-6 col-lg-5">
